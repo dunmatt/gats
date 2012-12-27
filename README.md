@@ -12,9 +12,19 @@ Also, because I thought it would be a good starter project for learning Go.
 
 ## Requirements
 
-gats uses my own fork of goquery, which in turn requires Go's experimental html package and cascadia, so these are all required.
+gats uses my own fork of goquery (TODO: issue pull request once it all works), which in turn requires Go's experimental html package and cascadia, so these are all required.
 It just should be a simple matter of following this guide: http://code.google.com/p/go-wiki/wiki/InstallingExp and then running
 
 `go get github.com/dunmatt/gats`
 
 and if not, please please please file a bug so I can correct this doc!
+
+## Example Usage
+
+## All Attributes (and their semantics)
+
+* **gatsattributes** : TODO describe gatsattributes
+* **gatsif** : If the name given as a value is in the data and evaluates to true, show this element, otherwise remove it.
+* **gatsremove** : Remove the attributed element and all of its children from the DOM.
+* **gatsrepeatover** : TODO describe gatsrepeatover
+* **gatstext** : Replace the children of the attributed element with the named string.
