@@ -2,6 +2,7 @@ package gats
 
 import (
 	"exp/html"
+	"fmt"
 	"github.com/dunmatt/goquery"
 	"io"
 	"os"
@@ -27,9 +28,30 @@ func RenderTemplateFile(filename string, data interface{}, out io.Writer) error 
 
 func fillInTemplate(t *goquery.Document, data interface{}) error {
 	handleGatsRemoves(t)
+	e := handleGatsIf(t, data)
+	if e != nil {
+		return e
+	}
 	return nil
 }
 
 func handleGatsRemoves(t *goquery.Document) {
 	t.Find("[gatsremove]").Remove()
+}
+
+func handleGatsIf(t *goquery.Document, data interface{}) error {
+	var result error = nil
+	t.Find("[gatsif]").Each(func(_ int, sel *goquery.Selection) {
+		fieldName, _ := sel.Attr("gatsif")
+		show, found := getBool(fieldName, data)
+		if !found {
+			result = fmt.Errorf("%v not found in the data!", fieldName)
+			return
+		}
+		if !show {
+			sel.Remove()
+		}
+		sel.RemoveAttr("gatsif")
+	})
+	return result
 }
