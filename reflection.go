@@ -1,26 +1,54 @@
 package gats
 
 import (
-	//"fmt"
+	"fmt"
 	"reflect"
 )
 
-func getBool(name string, data interface{}) bool {
-	return reflect.ValueOf(data).Elem().FieldByName(name).Bool()
-	//val := reflect.ValueOf(data).Elem()
-	//valType := val.Type()
-	//for i := 0; i < val.NumField(); i++ {
-	//	if name == valType.Field(i).Name {
-	//		return val.Field(i).Bool(), true
-	//	}
-	//}
-	//return false
+type context struct {
+	enclosure *context
+	data      interface{}
 }
 
-func getLength(name string, data interface{}) int {
-	return reflect.ValueOf(data).Elem().FieldByName(name).Len()
-	//val := reflect.ValueOf(data).Elem()
-	////defer recover() // this is expected if length is not defined on the type of data
-	//field := val.FieldByName(name)
-	//return field.Len(), field != reflect.Zero(val.Type())
+func makeContext(data interface{}, parent *context) *context {
+	return &context{
+		enclosure: parent,
+		data:      data,
+	}
+}
+
+func getBool(name string, cont *context) (bool, error) {
+	if cont == nil {
+		return false, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+	}
+	field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
+	if field.IsValid() {
+		return field.Bool(), nil
+	}
+	return getBool(name, cont.enclosure)
+}
+
+func getLength(name string, cont *context) (int, error) {
+	if cont == nil {
+		return -1, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+	}
+	field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
+	if field.IsValid() {
+		return field.Len(), nil
+	}
+	return getLength(name, cont.enclosure)
+}
+
+func getItem(name string, index int, cont *context) (*context, error) {
+	if cont == nil {
+		return nil, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+	}
+	field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
+	if field.IsValid() {
+		if 0 <= index && index <= field.Len() {
+			return makeContext(field.Index(index).Interface(), cont), nil
+		}
+		return nil, fmt.Errorf("Index %v out of bounds.", index)
+	}
+	return getItem(name, index, cont.enclosure)
 }

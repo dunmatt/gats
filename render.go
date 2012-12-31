@@ -18,16 +18,17 @@ func RenderTemplateFile(filename string, data interface{}, out io.Writer) error 
 	if err != nil {
 		return err
 	}
+	cont := makeContext(data, nil)
 	template := goquery.NewDocumentFromNode(rootNode).Find("html") // wrap goquery around the DOM
 	handleGatsRemoves(template)
-	err = fillInTemplate(template, data) // use goquery to process the template
+	err = fillInTemplate(template, cont) // use goquery to process the template
 	if err == nil {
 		html.Render(out, rootNode) // render the DOM back to html and send it off
 	}
 	return err
 }
 
-func fillInTemplate(scope *goquery.Selection, data interface{}) error {
+func fillInTemplate(scope *goquery.Selection, cont *context) error {
 	// filling in the template happens children first so that the closure of
 	// available data is readily available (if the most senior elements were
 	// done first there'd be no way to know the reflection path within data)
@@ -36,11 +37,20 @@ func fillInTemplate(scope *goquery.Selection, data interface{}) error {
 		if !found { // this can happen when the Find finds nested repeatovers
 			return
 		}
-		for i := 0; i < getLength(fieldName, data); i++ {
-			// TODO: resume here 
+		length, err := getLength(fieldName, cont)
+		if err == nil {
+			for i := 0; i < length; i++ {
+				c, e := getItem(fieldName, i, cont)
+				// TODO: copy the subtree and instert it
+				if e == nil {
+					fillInTemplate(sel, c) // TODO: stop ignoring the returned errors here
+				}
+			}
 		}
 	})
-	e := handleGatsIf(scope, data)
+
+	// do the actual work of filling in the template
+	e := handleGatsIf(scope, cont)
 	if e != nil {
 		return e
 	}
@@ -51,11 +61,11 @@ func handleGatsRemoves(t *goquery.Selection) {
 	t.Find("[gatsremove]").Remove()
 }
 
-func handleGatsIf(t *goquery.Selection, data interface{}) error {
+func handleGatsIf(t *goquery.Selection, cont *context) error {
 	var result error = nil
 	t.Find("[gatsif]").Each(func(_ int, sel *goquery.Selection) {
 		fieldName, _ := sel.Attr("gatsif")
-		show := getBool(fieldName, data)
+		show, _ := getBool(fieldName, cont)
 		if !show {
 			sel.Remove()
 		}
