@@ -32,23 +32,10 @@ func fillInTemplate(scope *goquery.Selection, cont *context) error {
 	// filling in the template happens children first so that the closure of
 	// available data is readily available (if the most senior elements were
 	// done first there'd be no way to know the reflection path within data)
-	scope.Find("[gatsrepeatover]").Each(func(_ int, sel *goquery.Selection) {
-		fieldName, found := sel.Attr("gatsrepeatover")
-		if !found { // this can happen when the Find finds nested repeatovers
-			return
-		}
-		length, err := getLength(fieldName, cont)
-		if err == nil {
-			for i := 0; i < length; i++ {
-				c, e := getItem(fieldName, i, cont)
-				if e == nil {
-					instance := sel.Clone().InsertBefore(sel)
-					fillInTemplate(instance, c) // TODO: stop ignoring the returned errors here
-				}
-			}
-		}
-		sel.Remove()
-	})
+	// NOTE: handleGatsRepeatOvers is mutually recursive with fillInTemplate
+	for sel := scope.Find("[gatsrepeatover]"); sel.Length() > 0; sel = scope.Find("[gatsrepeatover]") {
+		handleGatsRepeatOvers(sel.First(), cont)
+	}
 
 	// do the actual work of filling in the template
 	e := handleGatsIf(scope, cont)
@@ -56,6 +43,25 @@ func fillInTemplate(scope *goquery.Selection, cont *context) error {
 		return e
 	}
 	return nil
+}
+
+func handleGatsRepeatOvers(sel *goquery.Selection, cont *context) {
+	fieldName, found := sel.Attr("gatsrepeatover")
+	if !found { // this can happen when the Find finds nested repeatovers
+		return
+	}
+	length, err := getLength(fieldName, cont)
+	if err == nil {
+		for i := 0; i < length; i++ {
+			c, e := getItem(fieldName, i, cont)
+			if e == nil {
+				instance := sel.Clone().InsertBefore(sel)
+				fillInTemplate(instance, c) // TODO: stop ignoring the returned errors here
+				instance.RemoveAttr("gatsrepeatover")
+			}
+		}
+	}
+	sel.Remove()
 }
 
 func handleGatsRemoves(t *goquery.Selection) {
