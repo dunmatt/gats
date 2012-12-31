@@ -42,14 +42,15 @@ func fillInTemplate(scope *goquery.Selection, cont *context) error {
 	if e != nil {
 		return e
 	}
+	e = handleGatsAttributes(scope, cont)
+	if e != nil {
+		return e
+	}
 	return nil
 }
 
 func handleGatsRepeatOvers(sel *goquery.Selection, cont *context) {
-	fieldName, found := sel.Attr("gatsrepeatover")
-	if !found { // this can happen when the Find finds nested repeatovers
-		return
-	}
+	fieldName, _ := sel.Attr("gatsrepeatover")
 	length, err := getLength(fieldName, cont)
 	if err == nil {
 		for i := 0; i < length; i++ {
@@ -69,7 +70,7 @@ func handleGatsRemoves(t *goquery.Selection) {
 }
 
 func handleGatsIf(t *goquery.Selection, cont *context) error {
-	var result error = nil
+	var result error // = nil
 	t.Find("[gatsif]").Each(func(_ int, sel *goquery.Selection) {
 		fieldName, _ := sel.Attr("gatsif")
 		show, _ := getBool(fieldName, cont)
@@ -77,6 +78,23 @@ func handleGatsIf(t *goquery.Selection, cont *context) error {
 			sel.Remove()
 		}
 		sel.RemoveAttr("gatsif")
+	})
+	return result
+}
+
+func handleGatsAttributes(t *goquery.Selection, cont *context) error {
+	var result error
+	t.Find("[gatsattributes]").Each(func(_ int, sel *goquery.Selection) {
+		fieldName, _ := sel.Attr("gatsattributes")
+		attribs, err := getStringMap(fieldName, cont)
+		if err != nil {
+			result = err
+			return
+		}
+		for k, v := range attribs {
+			sel.SetAttr(k, v)
+		}
+		sel.RemoveAttr("gatsattributes")
 	})
 	return result
 }

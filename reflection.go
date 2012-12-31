@@ -31,6 +31,24 @@ func getBool(name string, cont *context) (bool, error) {
 	return getBool(name, cont.enclosure)
 }
 
+func getStringMap(name string, cont *context) (map[string]string, error) {
+	if cont == nil {
+		return nil, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+	}
+	switch reflect.ValueOf(cont.data).Kind().String() {
+	case "ptr":
+		field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
+		if field.IsValid() {
+			results := make(map[string]string)
+			for _, k := range field.MapKeys() {
+				results[k.String()] = field.MapIndex(k).String()
+			}
+			return results, nil
+		}
+	}
+	return getStringMap(name, cont.enclosure)
+}
+
 func getLength(name string, cont *context) (int, error) {
 	if cont == nil {
 		return -1, fmt.Errorf("No field named %v in the data (or no data provided)", name)
