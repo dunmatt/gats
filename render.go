@@ -46,6 +46,10 @@ func fillInTemplate(scope *goquery.Selection, cont *context) error {
 	if e != nil {
 		return e
 	}
+	e = handleGatsText(scope, cont)
+	if e != nil {
+		return e
+	}
 	return nil
 }
 
@@ -95,6 +99,21 @@ func handleGatsAttributes(t *goquery.Selection, cont *context) error {
 			sel.SetAttr(k, v)
 		}
 		sel.RemoveAttr("gatsattributes")
+	})
+	return result
+}
+
+func handleGatsText(t *goquery.Selection, cont *context) error {
+	var result error
+	t.Find("[gatstext]").Each(func(_ int, sel *goquery.Selection) {
+		fieldName, _ := sel.Attr("gatstext")
+		text, err := getString(fieldName, cont)
+		if err != nil {
+			result = err
+			return
+		}
+		sel.SetText(text)
+		sel.RemoveAttr("gatstext")
 	})
 	return result
 }
