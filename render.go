@@ -2,7 +2,7 @@ package gats
 
 import (
 	"exp/html"
-	"fmt"
+	//"fmt"
 	"github.com/dunmatt/goquery"
 	"io"
 	"os"
@@ -18,9 +18,9 @@ func RenderTemplateFile(filename string, data interface{}, out io.Writer) error 
 	if err != nil {
 		return err
 	}
-	template := goquery.NewDocumentFromNode(rootNode) // wrap goquery around the DOM
+	template := goquery.NewDocumentFromNode(rootNode).Find("html") // wrap goquery around the DOM
 	handleGatsRemoves(template)
-	err = fillInTemplate(template.Find("html"), data) // use goquery to process the template
+	err = fillInTemplate(template, data) // use goquery to process the template
 	if err == nil {
 		html.Render(out, rootNode) // render the DOM back to html and send it off
 	}
@@ -35,6 +35,9 @@ func fillInTemplate(scope *goquery.Selection, data interface{}) error {
 		fieldName, found := sel.Attr("gatsrepeatover")
 		if !found { // this can happen when the Find finds nested repeatovers
 			return
+		}
+		for i := 0; i < getLength(fieldName, data); i++ {
+			// TODO: resume here 
 		}
 	})
 	e := handleGatsIf(scope, data)
@@ -52,11 +55,7 @@ func handleGatsIf(t *goquery.Selection, data interface{}) error {
 	var result error = nil
 	t.Find("[gatsif]").Each(func(_ int, sel *goquery.Selection) {
 		fieldName, _ := sel.Attr("gatsif")
-		show, found := getBool(fieldName, data)
-		if !found {
-			result = fmt.Errorf("%v not found in the data!", fieldName)
-			return
-		}
+		show := getBool(fieldName, data)
 		if !show {
 			sel.Remove()
 		}
