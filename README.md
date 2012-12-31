@@ -21,6 +21,14 @@ It just should be a simple matter of following this guide: http://code.google.co
 
 and if not, please please please file a bug so I can correct this doc!
 
+## All Attributes (and their semantics)
+
+* **gatsattributes** : A map\[string\]string of attributes to programmatically give the element.
+* **gatsif** : If the name given as a value is in the data and evaluates to true, show this element, otherwise remove it (and all its kids).
+* **gatsremove** : Remove the attributed element and all of its children from the DOM.
+* **gatsrepeatover** : Populate a copy of the attributed element (and its children) with each item in the named array/slice (in order).
+* **gatstext** : Replace the children of the attributed element with the named string.
+
 ## Example Usage
 
 Just decorate some html however you want (yay, it even supports nesting!):
@@ -102,10 +110,44 @@ func main() {
 }
 ```
 
-## All Attributes (and their semantics)
+To yield:
 
-* **gatsattributes** : A map\[string\]string of attributes to programmatically give the element.
-* **gatsif** : If the name given as a value is in the data and evaluates to true, show this element, otherwise remove it (and all its kids).
-* **gatsremove** : Remove the attributed element and all of its children from the DOM.
-* **gatsrepeatover** : Populate a copy of the attributed element (and its children) with each item in the named array/slice (in order).
-* **gatstext** : Replace the children of the attributed element with the named string.
+```HTML
+<html><head>
+    <title>Yo Dawg</title>
+  </head>
+  <body>
+    Yo dawg, stuff:
+    <ul>
+      <li>things</li>
+      <li>misc</li>
+    </ul>
+    <table>
+      <tbody><tr>
+        <th test="data" hi="there">Title</th>
+        <th>Author</th>
+        <th>Year</th>
+        <th>Bibtex</th>
+      </tr>
+      <tr>
+        <td>first</td>
+        <td>Me</td><td>Me</td><td>Me</td>
+        <td>2013</td>
+        <td>meh</td>
+      </tr><tr>
+        <td>the matrix</td>
+        <td>Me</td><td>Me</td><td>Me</td>
+        <td>2013</td>
+        <td>look over there ----&amp;gt;</td>
+      </tr><tr>
+        <td>the three amigos</td>
+        <td>Me</td><td>Me</td><td>Me</td>
+        <td>2013</td>
+        <td>a plethora of laughs</td>
+      </tr>
+
+    </tbody></table>
+
+
+</body></html>
+```
