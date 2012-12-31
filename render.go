@@ -38,17 +38,16 @@ func fillInTemplate(scope *goquery.Selection, cont *context) error {
 			return
 		}
 		length, err := getLength(fieldName, cont)
-		insertionPoint := sel.Next()
-		template := sel.Remove()
 		if err == nil {
 			for i := 0; i < length; i++ {
 				c, e := getItem(fieldName, i, cont)
 				if e == nil {
-					sel = template.Clone().InsertBefore(insertionPoint)
-					fillInTemplate(sel, c) // TODO: stop ignoring the returned errors here
+					instance := sel.Clone().InsertBefore(sel)
+					fillInTemplate(instance, c) // TODO: stop ignoring the returned errors here
 				}
 			}
 		}
+		sel.Remove()
 	})
 
 	// do the actual work of filling in the template
