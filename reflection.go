@@ -18,78 +18,64 @@ func makeContext(data interface{}, parent *context) *context {
 }
 
 func getBool(name string, cont *context) (bool, error) {
-	if cont == nil {
-		return false, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+	field := getField(name, cont)
+	if field.IsValid() {
+		return field.Bool(), nil
 	}
-	switch reflect.ValueOf(cont.data).Kind().String() {
-	case "ptr":
-		field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
-		if field.IsValid() {
-			return field.Bool(), nil
-		}
-	}
-	return getBool(name, cont.enclosure)
+	return false, fmt.Errorf("No field named %v in the data (or no data provided)", name)
 }
 
 func getString(name string, cont *context) (string, error) {
-	if cont == nil {
-		return "", fmt.Errorf("No field named %v in the data (or no data provided)", name)
+	field := getField(name, cont)
+	if field.IsValid() {
+		return field.String(), nil
 	}
-	switch reflect.ValueOf(cont.data).Kind().String() {
-	case "ptr":
-		field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
-		if field.IsValid() {
-			return field.String(), nil
-		}
-	}
-	return getString(name, cont.enclosure)
+	return "", fmt.Errorf("No field named %v in the data (or no data provided)", name)
 }
 
 func getStringMap(name string, cont *context) (map[string]string, error) {
-	if cont == nil {
-		return nil, fmt.Errorf("No field named %v in the data (or no data provided)", name)
-	}
-	switch reflect.ValueOf(cont.data).Kind().String() {
-	case "ptr":
-		field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
-		if field.IsValid() {
-			results := make(map[string]string)
-			for _, k := range field.MapKeys() {
-				results[k.String()] = field.MapIndex(k).String()
-			}
-			return results, nil
+	field := getField(name, cont)
+	if field.IsValid() {
+		results := make(map[string]string)
+		for _, k := range field.MapKeys() {
+			results[k.String()] = field.MapIndex(k).String()
 		}
+		return results, nil
 	}
-	return getStringMap(name, cont.enclosure)
+	return nil, fmt.Errorf("No field named %v in the data (or no data provided)", name)
 }
 
 func getLength(name string, cont *context) (int, error) {
-	if cont == nil {
-		return -1, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+	field := getField(name, cont)
+	if field.IsValid() {
+		return field.Len(), nil
 	}
-	switch reflect.ValueOf(cont.data).Kind().String() {
-	case "ptr":
-		field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
-		if field.IsValid() {
-			return field.Len(), nil
-		}
-	}
-	return getLength(name, cont.enclosure)
+	return -1, fmt.Errorf("No field named %v in the data (or no data provided)", name)
 }
 
 func getItem(name string, index int, cont *context) (*context, error) {
+	field := getField(name, cont)
+	if field.IsValid() {
+		if 0 <= index && index <= field.Len() {
+			return makeContext(field.Index(index).Interface(), cont), nil
+		}
+		return nil, fmt.Errorf("Index %v out of bounds.", index)
+	}
+	return nil, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+}
+
+func getField(name string, cont *context) (result reflect.Value) {
 	if cont == nil {
-		return nil, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+		return reflect.Zero(reflect.TypeOf(name)) // any value of zero is fine here, all are !IsValid
 	}
 	switch reflect.ValueOf(cont.data).Kind().String() {
 	case "ptr":
-		field := reflect.ValueOf(cont.data).Elem().FieldByName(name)
-		if field.IsValid() {
-			if 0 <= index && index <= field.Len() {
-				return makeContext(field.Index(index).Interface(), cont), nil
-			}
-			return nil, fmt.Errorf("Index %v out of bounds.", index)
-		}
+		result = reflect.ValueOf(cont.data).Elem().FieldByName(name)
+	case "struct":
+		result = reflect.ValueOf(cont.data).FieldByName(name)
 	}
-	return getItem(name, index, cont.enclosure)
+	if result.IsValid() {
+		return result
+	}
+	return getField(name, cont.enclosure)
 }

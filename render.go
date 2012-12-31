@@ -2,7 +2,6 @@ package gats
 
 import (
 	"exp/html"
-	//"fmt"
 	"github.com/dunmatt/goquery"
 	"io"
 	"os"
@@ -61,7 +60,10 @@ func handleGatsRepeatOvers(sel *goquery.Selection, cont *context) {
 			c, e := getItem(fieldName, i, cont)
 			if e == nil {
 				instance := sel.Clone().InsertBefore(sel)
-				fillInTemplate(instance, c) // TODO: stop ignoring the returned errors here
+				e1 := fillInTemplate(instance, c) // TODO: stop ignoring the returned errors here
+				if e1 != nil {
+					panic(e1)
+				}
 				instance.RemoveAttr("gatsrepeatover")
 			}
 		}
