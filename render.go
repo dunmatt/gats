@@ -38,11 +38,13 @@ func fillInTemplate(scope *goquery.Selection, cont *context) error {
 			return
 		}
 		length, err := getLength(fieldName, cont)
+		insertionPoint := sel.Next()
+		template := sel.Remove()
 		if err == nil {
 			for i := 0; i < length; i++ {
 				c, e := getItem(fieldName, i, cont)
-				// TODO: copy the subtree and instert it
 				if e == nil {
+					sel = template.Clone().InsertBefore(insertionPoint)
 					fillInTemplate(sel, c) // TODO: stop ignoring the returned errors here
 				}
 			}
