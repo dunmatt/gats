@@ -1,8 +1,10 @@
 package gats
 
 import (
+	"exp/html"
 	"fmt"
 	"reflect"
+	"unsafe"
 )
 
 type context struct {
@@ -33,6 +35,10 @@ func getString(name string, cont *context) (string, error) {
 	return "", fmt.Errorf("No field named %v in the data (or no data provided)", name)
 }
 
+func isString(name string, cont *context) bool {
+	return getField(name, cont).Type().String() == "string"
+}
+
 func getStringMap(name string, cont *context) (map[string]string, error) {
 	field := getField(name, cont)
 	if field.IsValid() {
@@ -41,6 +47,14 @@ func getStringMap(name string, cont *context) (map[string]string, error) {
 			results[k.String()] = field.MapIndex(k).String()
 		}
 		return results, nil
+	}
+	return nil, fmt.Errorf("No field named %v in the data (or no data provided)", name)
+}
+
+func getHtmlNode(name string, cont *context) (*html.Node, error) {
+	field := getField(name, cont)
+	if field.IsValid() {
+		return (*html.Node)(unsafe.Pointer(field.Pointer())), nil
 	}
 	return nil, fmt.Errorf("No field named %v in the data (or no data provided)", name)
 }

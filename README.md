@@ -29,6 +29,11 @@ and if not, please please please file a bug so I can correct this doc!
 * **gatsrepeatover** : Populate a copy of the attributed element (and its children) with each item in the named array/slice (in order).
 * **gatstext** : Replace the children of the attributed element with the named string.
 
+## Changelog
+
+*    **v0.1.1** : Added gatsomittag and gatscontent
+*    **v0.1.0** : Initial release.
+
 ## Example Usage
 
 Just decorate some html however you want (yay, it even supports nesting!):
