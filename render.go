@@ -82,83 +82,67 @@ func handleGatsRemoves(t *goquery.Selection) {
 	t.Find("[gatsremove]").Remove()
 }
 
-func handleGats(t *goquery.Selection, cont *context, selector string,
-	meat func(string, *goquery.Selection) error) (result error) {
+func handleGats(t *goquery.Selection, cont *context, selector string, meat func(string, *goquery.Selection)) {
 	attribName := selector[1 : len(selector)-1]
 	t.Find(selector).Each(func(_ int, sel *goquery.Selection) {
 		fieldName, _ := sel.Attr(attribName)
-		result = meat(fieldName, sel)
+		meat(fieldName, sel)
 		sel.RemoveAttr(attribName)
 	})
 	return
 }
 
 func handleGatsIf(t *goquery.Selection, cont *context) (result error) {
-	return handleGats(t, cont, "[gatsif]",
-		func(fieldName string, sel *goquery.Selection) (res error) {
+	handleGats(t, cont, "[gatsif]",
+		func(fieldName string, sel *goquery.Selection) {
 			show, res := getBool(fieldName, cont)
 			if !show {
 				sel.Remove()
 			}
-			return res
+			result = res
 		})
-	//t.Find("[gatsif]").Each(func(_ int, sel *goquery.Selection) {
-	//	fieldName, _ := sel.Attr("gatsif")
-	//	show, _ := getBool(fieldName, cont)
-	//	if !show {
-	//		sel.Remove()
-	//	}
-	//	sel.RemoveAttr("gatsif")
-	//})
-	//return result
+	return result
 }
 
 func handleGatsContent(t *goquery.Selection, cont *context) (result error) {
-	t.Find("[gatscontent]").Each(func(_ int, sel *goquery.Selection) {
-		fieldName, _ := sel.Attr("gatscontent")
-		if isString(fieldName, cont) {
-			rawHtml, result := getString(fieldName, cont)
-			if result == nil {
-				sel.SetHtml(rawHtml)
+	handleGats(t, cont, "[gatscontent]",
+		func(fieldName string, sel *goquery.Selection) {
+			if isString(fieldName, cont) {
+				rawHtml, result := getString(fieldName, cont)
+				if result == nil {
+					sel.SetHtml(rawHtml)
+				}
+			} else {
+				node, result := getHtmlNode(fieldName, cont)
+				if result == nil {
+					sel.AppendClones(node)
+				}
 			}
-		} else {
-			node, result := getHtmlNode(fieldName, cont)
-			if result == nil {
-				sel.AppendClones(node)
-			}
-		}
-		sel.RemoveAttr("gatscontent")
-	})
+		})
 	return result
 }
 
 func handleGatsAttributes(t *goquery.Selection, cont *context) (result error) {
-	t.Find("[gatsattributes]").Each(func(_ int, sel *goquery.Selection) {
-		fieldName, _ := sel.Attr("gatsattributes")
-		attribs, err := getStringMap(fieldName, cont)
-		if err != nil {
-			result = err
-			return
-		}
-		for k, v := range attribs {
-			sel.SetAttr(k, v)
-		}
-		sel.RemoveAttr("gatsattributes")
-	})
+	handleGats(t, cont, "[gatsattributes]",
+		func(fieldName string, sel *goquery.Selection) {
+			attribs, result := getStringMap(fieldName, cont)
+			if result == nil {
+				for k, v := range attribs {
+					sel.SetAttr(k, v)
+				}
+			}
+		})
 	return result
 }
 
 func handleGatsText(t *goquery.Selection, cont *context) (result error) {
-	t.Find("[gatstext]").Each(func(_ int, sel *goquery.Selection) {
-		fieldName, _ := sel.Attr("gatstext")
-		text, err := getString(fieldName, cont)
-		if err != nil {
-			result = err
-			return
-		}
-		sel.SetText(text)
-		sel.RemoveAttr("gatstext")
-	})
+	handleGats(t, cont, "[gatstext]",
+		func(fieldName string, sel *goquery.Selection) {
+			text, result := getString(fieldName, cont)
+			if result == nil {
+				sel.SetText(text)
+			}
+		})
 	return result
 }
 
