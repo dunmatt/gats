@@ -2,32 +2,41 @@ package gats
 
 import (
 	"exp/html"
-	//"fmt"
+	"fmt"
 	"github.com/dunmatt/goquery"
 	"io"
 	"os"
+	"strings"
 )
 
 func RenderTemplateFile(filename string, data interface{}, out io.Writer) error {
-	f, err := os.Open(filename) // read the file in
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	rootNode, err := html.Parse(f) // parse it
+	rootNode, err := parseFile(filename)
 	if err != nil {
 		return err
 	}
 	cont := makeContext(data, nil)
 	template := goquery.NewDocumentFromNode(rootNode).Find("html") // wrap goquery around the DOM
 
-	handleGatsRemoves(template)          // take out everything that definitely won't be shown
+	handleGatsRemoves(template)           // take out everything that definitely won't be shown
+	err = handleGatsTranscludes(template) // transclude in all the sub-templates
+	if err != nil {
+		return err
+	}
 	err = fillInTemplate(template, cont) // process the template
 	handleGatsOmitTag(template)          // make sure this one comes last, it can interfere with other attributes
 	if err == nil {
 		html.Render(out, rootNode) // render the DOM back to html and send it off
 	}
 	return err
+}
+
+func parseFile(filename string) (*html.Node, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return html.Parse(f)
 }
 
 func fillInTemplate(scope *goquery.Selection, cont *context) error {
@@ -82,13 +91,6 @@ func handleGatsRemoves(t *goquery.Selection) {
 	t.Find("[gatsremove]").Remove()
 }
 
-func handleGatsTranscludes(t *goquery.Selection) error {
-	//for sel := scope.Find("[gatstransclude]"); sel.Length() > 0; sel = scope.Find("[gatstransclude]") {
-	//	handleGatsRepeatOvers(sel.First(), cont)
-	//}
-	return nil
-}
-
 func handleGats(t *goquery.Selection, selector string, meat func(string, *goquery.Selection)) {
 	attribName := selector[1 : len(selector)-1]
 	t.Find(selector).Each(func(_ int, sel *goquery.Selection) {
@@ -97,6 +99,37 @@ func handleGats(t *goquery.Selection, selector string, meat func(string, *goquer
 		sel.RemoveAttr(attribName)
 	})
 	return
+}
+
+func splitTranscludeString(val string) (string, string, error) {
+	index := strings.Index(val, ";")
+	if index == -1 {
+		return "", "", fmt.Errorf("Invalid transclude string '%v', contains no semicolon.", val)
+	}
+	return val[:index], val[index+1:], nil
+}
+
+func handleGatsTranscludes(scope *goquery.Selection) (result error) {
+	for scope.Find("[gatstransclude]").Length() > 0 && result == nil {
+		handleGats(scope, "[gatstransclude]", func(ts string, sel *goquery.Selection) {
+			if result != nil {
+				return
+			}
+			filename, selector, res := splitTranscludeString(ts)
+			if res != nil {
+				result = res
+				return
+			}
+			rootNode, res := parseFile(filename)
+			if res != nil {
+				result = res
+				return
+			}
+			newKids := goquery.NewDocumentFromNode(rootNode).Find(selector)
+			sel.Empty().Append(newKids)
+		})
+	}
+	return result
 }
 
 func handleGatsIf(t *goquery.Selection, cont *context) (result error) {
