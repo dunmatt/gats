@@ -82,6 +82,13 @@ func handleGatsRemoves(t *goquery.Selection) {
 	t.Find("[gatsremove]").Remove()
 }
 
+func handleGatsTranscludes(t *goquery.Selection) error {
+	//for sel := scope.Find("[gatstransclude]"); sel.Length() > 0; sel = scope.Find("[gatstransclude]") {
+	//	handleGatsRepeatOvers(sel.First(), cont)
+	//}
+	return nil
+}
+
 func handleGats(t *goquery.Selection, cont *context, selector string, meat func(string, *goquery.Selection)) {
 	attribName := selector[1 : len(selector)-1]
 	t.Find(selector).Each(func(_ int, sel *goquery.Selection) {

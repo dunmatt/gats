@@ -5,7 +5,7 @@ Go Attribute Templating System
 
 gats is exactly what it sounds like.  It is a templating system written in go that uses html/xml attributes for its control structures.
 
-IMPORTANT NOTE:  This is my "hey lets learn Go" project.  Drop me a line and I'll see what I can do to support your use case.  Or just drop me a line to say you like it, that's fine too :-D .
+Drop me a line and I'll see what I can do to support your use case.  Or just drop me a line to say you like it, that's fine too :-D .
 
 ## Dear lord, not another templating system, why??
 
@@ -42,9 +42,11 @@ and if not, please please please file a bug so I can correct this doc!
 * **gatsremove** : Remove the attributed element and all of its children from the DOM.
 * **gatsrepeatover** : Populate a copy of the attributed element (and its children) with each item in the named array/slice (in order).
 * **gatstext** : Replace the children of the attributed element with the named string.  This is much like gatscontent, except that it html escapes everything, so the string will display to the user instead of potentially becomming part of the DOM.
+* **gatstransclude** : Insert the selected subtree from another page/template into this one.  The syntax is gatstransclude="filename;css_selector", which translates to "open filename and copy everything that matches css_selector into this document as children of the attributed element".
 
 ## Changelog
 
+*    **v0.3.0** : Added gatstransclude
 *    **v0.2.0** : Added gatsomittag and gatscontent
 *    **v0.1.0** : Initial release.
 
