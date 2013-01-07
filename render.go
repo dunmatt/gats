@@ -65,6 +65,10 @@ func fillInTemplate(scope *goquery.Selection, cont *context) error {
 	if e != nil {
 		return e
 	}
+	e = handleGatsAttribute(scope, cont)
+	if e != nil {
+		return e
+	}
 	return nil
 }
 
@@ -101,7 +105,7 @@ func handleGats(t *goquery.Selection, selector string, meat func(string, *goquer
 	return
 }
 
-func splitTranscludeString(val string) (string, string, error) {
+func splitString(val string) (string, string, error) {
 	index := strings.Index(val, ";")
 	if index == -1 {
 		return "", "", fmt.Errorf("Invalid transclude string '%v', contains no semicolon.", val)
@@ -115,7 +119,7 @@ func handleGatsTranscludes(scope *goquery.Selection) (result error) {
 			if result != nil {
 				return
 			}
-			filename, selector, res := splitTranscludeString(ts)
+			filename, selector, res := splitString(ts)
 			if res != nil {
 				result = res
 				return
@@ -156,6 +160,23 @@ func handleGatsContent(t *goquery.Selection, cont *context) (result error) {
 				sel.AppendClones(node)
 			}
 		}
+	})
+	return result
+}
+
+func handleGatsAttribute(t *goquery.Selection, cont *context) (result error) {
+	handleGats(t, "[gatsattribute]", func(val string, sel *goquery.Selection) {
+		attribute, fieldName, err := splitString(val)
+		if err != nil {
+			result = err
+			return
+		}
+		attributeValue, err := getString(fieldName, cont)
+		if err != nil {
+			result = err
+			return
+		}
+		sel.SetAttr(attribute, attributeValue)
 	})
 	return result
 }

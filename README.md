@@ -26,7 +26,7 @@ As of now the only fundamental difference between TAL and gats is the complexity
 
 ## Requirements
 
-gats uses my own fork of goquery (TODO: issue pull request once it all works), which in turn requires Go's experimental html package and cascadia, so these are all required.
+gats uses my own fork of goquery, which in turn requires Go's experimental html package and cascadia, so these are all required.
 It just should be a simple matter of following this guide: http://code.google.com/p/go-wiki/wiki/InstallingExp and then running
 
 `go get github.com/dunmatt/gats`
@@ -35,6 +35,7 @@ and if not, please please please file a bug so I can correct this doc!
 
 ## All Attributes (and their semantics)
 
+* **gatsattribute** : A string in the format "attributeName;fieldName" which will render to attributeName="{value of the string fieldName}".
 * **gatsattributes** : A map\[string\]string of attributes to programmatically give the element.
 * **gatscontent** : Replace the children of the attributed element with either the raw string, or the html parse tree.
 * **gatsif** : If the name given as a value is in the data and evaluates to true, show this element, otherwise remove it (and all its kids).
@@ -46,6 +47,7 @@ and if not, please please please file a bug so I can correct this doc!
 
 ## Changelog
 
+*    **v0.4.0** : Added gatsattribute
 *    **v0.3.0** : Added gatstransclude
 *    **v0.2.0** : Added gatsomittag and gatscontent
 *    **v0.1.0** : Initial release.
@@ -65,7 +67,7 @@ Just decorate some html however you want (yay, it even supports nesting!):
       <li>things</li>
       <li>misc</li>
     </ul>
-    <div gatscontent="cont"></div>
+    <div gatscontent="cont" gatsattribute="class;year"></div>
     <table>
       <tr>
         <th gatsattributes="Titleattrs">Title</th>
@@ -77,7 +79,16 @@ Just decorate some html however you want (yay, it even supports nesting!):
         <td><b gatsomittag="unr" gatstext="title">Doing stuff with items<b></td>
         <td gatsrepeatover="Entries">Me</td>
         <td gatstext="year">Soon</td>
-        <td gatstext="bibtex">the</td>
+        <td gatstext="bibtex">@InCollection{    scheutz11affectcomm,
+  author        = {Matthias Scheutz},
+  title         = {Evolution of Affect and Communication},
+  booktitle     = {Affective Computing and Interaction: Psychological, Cognitive and Neuroscientific Perspectives},
+  year          = {2011},
+  editor        = {Didem G\:{o}k\c{c}ay and G\:{o}lsen Yildirim},
+  publisher	= {{IGI} Global},
+  link          = {http://hrilab.tufts.edu/publications/scheutz11affectcomm.pdf},
+}
+</td>
       </tr>
       <tr gatsremove="true">
         <td>This</td>
@@ -152,10 +163,10 @@ To yield:
       <li>things</li>
       <li>misc</li>
     </ul>
-    <div><hr/></div>
+    <div class="2013"><hr/></div>
     <table>
       <tbody><tr>
-        <th hi="there" test="data">Title</th>
+        <th test="data" hi="there">Title</th>
         <th>Author</th>
         <th>Year</th>
         <th>Bibtex</th>
@@ -169,7 +180,7 @@ To yield:
         <td>the matrix</td>
         <td>Me</td><td>Me</td><td>Me</td>
         <td>2013</td>
-        <td>look over there ----&amp;gt;</td>
+        <td>look over there ----&gt;</td>
       </tr><tr>
         <td>the three amigos</td>
         <td>Me</td><td>Me</td><td>Me</td>
