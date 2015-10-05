@@ -42,7 +42,7 @@ and if not, please please please file a bug so I can correct this doc!
 * **gatsomittag** : Replace the attributed element with its children.
 * **gatsremove** : Remove the attributed element and all of its children from the DOM.
 * **gatsrepeatover** : Populate a copy of the attributed element (and its children) with each item in the named array/slice (in order).
-* **gatstext** : Replace the children of the attributed element with the named string.  This is much like gatscontent, except that it html escapes everything, so the string will display to the user instead of potentially becomming part of the DOM.
+* **gatstext** : Replace the children of the attributed element with the named string.  This is much like gatscontent, except that it html escapes everything, so the string will display to the user instead of potentially becoming part of the DOM.
 * **gatstransclude** : Insert the selected subtree from another page/template into this one.  The syntax is gatstransclude="filename;css_selector", which translates to "open filename and copy everything that matches css_selector into this document as children of the attributed element".
 
 ## Changelog
